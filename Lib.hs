@@ -1,5 +1,6 @@
 module Lib where
 import Mon
+import Data.Fixed(mod')
 
 --- ---  RenderData  --- ---
 type R = Rational
@@ -77,9 +78,9 @@ instance Num Transform where
   (Transform a) + (Transform b) = Transform [ zipWith (+) p q | (p, q) <- zip a b]
   negate (Transform a) = Transform [[-n | n <- l] | l <- a]
   (Transform a) * (Transform b) = Transform [[sum $ zipWith (*) ls rs | rs <- transpose b] | ls <- a]
-  abs (Transform _) = 1 -- not used - mocked so there are no warning while implementing rest of Num Transform
-  signum (Transform _) = 1 -- not used - mocked so there are no warning while implementing rest of Num Transform
-  fromInteger _ = Transform [[]] -- not used - mocked so there are no warning while implementing rest of Num Transform
+  abs (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
+  signum (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
+  fromInteger _ = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
 
 
 -- przesunięcie o wektor
@@ -88,4 +89,27 @@ translate (Vec (x, y)) = Transform [ [1, 0, x]
                                    , [0, 1, y]
                                    , [0, 0, 1]
                                    ]
+
+sine :: R -> R
+sine n
+  | 0 <= n && n <= fullCircle / 2 = (4 * n * (180 - n)) / (40500 - (n * (180 - n))) -- Bhaskara formula
+  | fullCircle / 2 <= n && n <= fullCircle = -sine (n - (fullCircle / 2))
+  | otherwise = sine (n `mod'` fullCircle) -- TODO implement better modulo? here 13 mod 3.1 is not 0.6
+
+cosine :: R -> R
+cosine n = sine (n - (fullCircle / 4))
+
+-- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
+-- jednostki mozna sobie wybrać
+rotate :: R -> Transform
+rotate r = Transform [ [cosine(r), -sine(r), 0]
+                     , [sine(r), cosine(r), 0]
+                     , [0, 0, 1] ]
+
+fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
+fullCircle = toRational 360
+
+instance Mon Transform where
+  m1 = Transform [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+  t1 >< t2 = (t1 * t2)
 
