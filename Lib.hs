@@ -65,30 +65,32 @@ renderScaled f (Picture lines) = (map roundLine lines) where
 
 --- --- Transformation --- ---
 
-data Transform = Transform [[R]]
+data TransformOp = Translation Vec | Rotation R
+data Transform = [TransformOp]
+
+instance Show TransformOp where
+  show Translation v = "Translate " + show a
+  show Rotation r = "Rotation " + show r
 
 instance Show Transform where
   show (Transform a) = show a
 
-transpose :: [[R]] -> [[R]]
-transpose ([]:_) = []
-transpose x = (map head x) : transpose (map tail x)
-
-instance Num Transform where
-  (Transform a) + (Transform b) = Transform [ zipWith (+) p q | (p, q) <- zip a b]
-  negate (Transform a) = Transform [[-n | n <- l] | l <- a]
-  (Transform a) * (Transform b) = Transform [[sum $ zipWith (*) ls rs | rs <- transpose b] | ls <- a]
-  abs (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
-  signum (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
-  fromInteger _ = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
-
 
 -- przesunięcie o wektor
 translate :: Vec -> Transform
-translate (Vec (x, y)) = Transform [ [1, 0, x]
-                                   , [0, 1, y]
-                                   , [0, 0, 1]
-                                   ]
+translate v = [Translation v]
+
+-- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
+-- jednostki mozna sobie wybrać
+rotate :: R -> Transform
+rotate r = [Rotation R]
+
+fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
+fullCircle = toRational 360
+
+instance Mon Transform where
+m1 = Rotation 0
+t1 >< t2 = t1 ++ t2
 
 sine :: R -> R
 sine n
@@ -99,17 +101,43 @@ sine n
 cosine :: R -> R
 cosine n = sine (n - (fullCircle / 4))
 
--- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
--- jednostki mozna sobie wybrać
-rotate :: R -> Transform
-rotate r = Transform [ [cosine(r), -sine(r), 0]
-                     , [sine(r), cosine(r), 0]
-                     , [0, 0, 1] ]
-
 fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
 fullCircle = toRational 360
 
-instance Mon Transform where
-  m1 = Transform [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
-  t1 >< t2 = (t1 * t2)
 
+--- --- DEAD CODE STASH --- ---
+
+
+-- -- Matrix-based version -- --
+
+--data Transform = Transform [[R]]
+--
+--transpose :: [[R]] -> [[R]]
+--transpose ([]:_) = []
+--transpose x = (map head x) : transpose (map tail x)
+--
+--instance Num Transform where
+--  (Transform a) + (Transform b) = Transform [ zipWith (+) p q | (p, q) <- zip a b]
+--  negate (Transform a) = Transform [[-n | n <- l] | l <- a]
+--  (Transform a) * (Transform b) = Transform [[sum $ zipWith (*) ls rs | rs <- transpose b] | ls <- a]
+--  abs (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
+--  signum (Transform _) = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
+--  fromInteger _ = undefined -- not used - mocked so there are no warning while implementing rest of Num Transform
+--
+---- przesunięcie o wektor
+--translate :: Vec -> Transform
+--translate (Vec (x, y)) = Transform [ [1, 0, x]
+--                                   , [0, 1, y]
+--                                   , [0, 0, 1]
+--                                   ]
+--
+---- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
+---- jednostki mozna sobie wybrać
+--rotate :: R -> Transform
+--rotate r = Transform [ [cosine(r), -sine(r), 0]
+--                     , [sine(r), cosine(r), 0]
+--                     , [0, 0, 1] ]
+--
+--instance Mon Transform where
+--  m1 = Transform [[1, 0, 0], [0, 1, 0], [0, 0, 1]]
+--  t1 >< t2 = (t1 * t2)
