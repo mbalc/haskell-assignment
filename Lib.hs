@@ -58,11 +58,14 @@ rectangle a b = Picture [ picLine (0, 0) (a, 0)
 type IntLine = ((Int, Int), (Int, Int))
 type IntRendering = [IntLine]
 
+renderScalePoint :: Int -> Point -> IntPoint
+renderScalePoint f (Point (x, y)) = (round (x * f'), round (y * f')) where f' = toRational f
+
 -- Obrazowanie przy danym współczynniku powiększenia
 -- z zaokrągleniem do najbliższych wartości całkowitych
 renderScaled :: Int -> Picture -> IntRendering
 renderScaled f (Picture lines) = (map roundLine lines) where
-  roundLine = (\(Point (a, b), Point (p, q)) -> ((round a, round b), (round p, round q)))
+  roundLine = (\(p1, p2) -> (renderScalePoint f p1, renderScalePoint f p2))
 
 
 --- --- Transformation --- ---
