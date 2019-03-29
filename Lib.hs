@@ -1,3 +1,5 @@
+--- Made by mbalc (mb385130) ---
+
 module Lib where
 import Mon
 import Data.Fixed(mod')
