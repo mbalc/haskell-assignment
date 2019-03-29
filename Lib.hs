@@ -105,7 +105,7 @@ sine n
   | otherwise = sine (n `mod'` fullCircle) -- TODO implement better modulo? here 13 mod 3.1 is not 0.6
 
 cosine :: R -> R
-cosine n = sine (n - (fullCircle / 4))
+cosine n = sine (n + (fullCircle / 4))
 
 c_rotate :: R2 -> R -> R2
 c_rotate (x, y) r = ( (x * cs) - (y * sn)
