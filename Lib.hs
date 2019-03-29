@@ -46,3 +46,13 @@ rectangle a b = Picture [ (point (0, 0), point(a, 0))
 -- suma (nałożenie) dwóch rysunków
 (&) :: Picture -> Picture -> Picture
 (Picture a) & (Picture b) = Picture (a ++ b)
+
+type IntLine = ((Int, Int), (Int, Int))
+type IntRendering = [IntLine]
+
+-- Obrazowanie przy danym współczynniku powiększenia
+-- z zaokrągleniem do najbliższych wartości całkowitych
+renderScaled :: Int -> Picture -> IntRendering
+renderScaled f (Picture lines) = (map roundLine lines) where
+  roundLine = (\(Point (a, b), Point (p, q)) -> ((round a, round b), (round p, round q)))
+
