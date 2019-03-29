@@ -32,16 +32,20 @@ instance Mon Vec where
 type PicLine = (Point, Point)
 data Picture = Picture [PicLine]
 
+picLine :: (R, R) -> (R, R) -> PicLine
+picLine (x1, y1) (x2, y2) = (Point (x1, y1), Point (x2, y2))
+
+
 -- odcinek pomiędzy punktami o podanych współrzędnych
 line :: (R, R) -> (R, R) -> Picture
-line (x1, y1) (x2, y2) = Picture [Point (x1, y1), Point (x2, y2))]
+line (x1, y1) (x2, y2) = Picture [(Point (x1, y1), Point (x2, y2))]
 
 -- prostokąt o podanej szerokości i wysokości zaczepiony w (0, 0)
 rectangle :: R -> R -> Picture
-rectangle a b = Picture [ line (0, 0) (a, 0)
-                        , line (0, 0) (0, b)
-                        , line (a, 0) (a, b)
-                        , line (0, b) (a, b)
+rectangle a b = Picture [ picLine (0, 0) (a, 0)
+                        , picLine (0, 0) (0, b)
+                        , picLine (a, 0) (a, b)
+                        , picLine (0, b) (a, b)
                         ]
 
 -- suma (nałożenie) dwóch rysunków
