@@ -61,3 +61,31 @@ renderScaled :: Int -> Picture -> IntRendering
 renderScaled f (Picture lines) = (map roundLine lines) where
   roundLine = (\(Point (a, b), Point (p, q)) -> ((round a, round b), (round p, round q)))
 
+
+--- --- Transformation --- ---
+
+data Transform = Transform [[R]]
+
+instance Show Transform where
+  show (Transform a) = show a
+
+transpose :: [[R]] -> [[R]]
+transpose ([]:_) = []
+transpose x = (map head x) : transpose (map tail x)
+
+instance Num Transform where
+  (Transform a) + (Transform b) = Transform [ zipWith (+) p q | (p, q) <- zip a b]
+  negate (Transform a) = Transform [[-n | n <- l] | l <- a]
+  (Transform a) * (Transform b) = Transform [[sum $ zipWith (*) ls rs | rs <- transpose b] | ls <- a]
+  abs (Transform _) = 1 -- not used - mocked so there are no warning while implementing rest of Num Transform
+  signum (Transform _) = 1 -- not used - mocked so there are no warning while implementing rest of Num Transform
+  fromInteger _ = Transform [[]] -- not used - mocked so there are no warning while implementing rest of Num Transform
+
+
+-- przesunięcie o wektor
+translate :: Vec -> Transform
+translate (Vec (x, y)) = Transform [ [1, 0, x]
+                                   , [0, 1, y]
+                                   , [0, 0, 1]
+                                   ]
+
