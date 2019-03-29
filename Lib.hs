@@ -126,6 +126,12 @@ trvec (Transform l) (Vec v) = Vec (foldl (\acc h -> case h of
     Rotation r -> c_rotate acc r
   ) v l)
 
+transformLine :: Transform -> PicLine -> PicLine
+transformLine t (p1, p2) = (trpoint t p1, trpoint t p2)
+
+transform :: Transform -> Picture -> Picture
+transform t (Picture l) = Picture $ map (transformLine t) l
+
 
 --- --- DEAD CODE STASH --- ---
 
