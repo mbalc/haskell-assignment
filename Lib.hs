@@ -29,19 +29,20 @@ instance Mon Vec where
   (Vec (a, b)) >< (Vec (p, q)) = Vec ((a + p), (b + q))
 
 
-data Picture = Picture [(Point, Point)]
+type PicLine = (Point, Point)
+data Picture = Picture [PicLine]
 
 -- odcinek pomiędzy punktami o podanych współrzędnych
 line :: (R, R) -> (R, R) -> Picture
-line a b = Picture [(point a, point b)]
+line (x1, y1) (x2, y2) = Picture [Point (x1, y1), Point (x2, y2))]
 
 -- prostokąt o podanej szerokości i wysokości zaczepiony w (0, 0)
 rectangle :: R -> R -> Picture
-rectangle a b = Picture [ (point (0, 0), point(a, 0))
-                         , (point (0, 0), point(0, b))
-                         , (point (a, 0), point(a, b))
-                         , (point (0, b), point(a, b))
-                         ]
+rectangle a b = Picture [ line (0, 0) (a, 0)
+                        , line (0, 0) (0, b)
+                        , line (a, 0) (a, b)
+                        , line (0, b) (a, b)
+                        ]
 
 -- suma (nałożenie) dwóch rysunków
 (&) :: Picture -> Picture -> Picture
