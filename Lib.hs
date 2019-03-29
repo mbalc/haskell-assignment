@@ -66,11 +66,11 @@ renderScaled f (Picture lines) = (map roundLine lines) where
 --- --- Transformation --- ---
 
 data TransformOp = Translation Vec | Rotation R
-data Transform = [TransformOp]
+data Transform = Transform [TransformOp]
 
 instance Show TransformOp where
-  show Translation v = "Translate " + show a
-  show Rotation r = "Rotation " + show r
+  show (Translation v) = "Translate " ++ show v
+  show (Rotation r) = "Rotation " ++ show r
 
 instance Show Transform where
   show (Transform a) = show a
@@ -78,19 +78,20 @@ instance Show Transform where
 
 -- przesunięcie o wektor
 translate :: Vec -> Transform
-translate v = [Translation v]
+translate v = Transform [Translation v]
 
 -- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
 -- jednostki mozna sobie wybrać
 rotate :: R -> Transform
-rotate r = [Rotation R]
+rotate r = Transform [Rotation r]
+
+instance Mon Transform where
+  m1 = Transform []
+  Transform t1 >< Transform t2 = Transform (t1 ++ t2)
+
 
 fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
 fullCircle = toRational 360
-
-instance Mon Transform where
-m1 = Rotation 0
-t1 >< t2 = t1 ++ t2
 
 sine :: R -> R
 sine n
@@ -101,12 +102,27 @@ sine n
 cosine :: R -> R
 cosine n = sine (n - (fullCircle / 4))
 
-fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
-fullCircle = toRational 360
+c_rotate :: R2 -> R -> R2
+c_rotate (x, y) r = ( (x * cs) - (y * sn)
+                  , (x * sn) + (y * cs)) where cs = cosine r
+                                               sn = sine r
+c_translate :: R2 -> R2 -> R2
+c_translate (x, y) (xt, yt) = ((x + xt), (y + yt))
+
+trpoint :: Transform -> Point -> Point
+trpoint (Transform l) (Point p) = Point (foldl (\acc h -> case h of
+    Translation (Vec t) -> c_translate acc t
+    Rotation r -> c_rotate acc r
+  ) p l)
+
+trvec :: Transform -> Vec -> Vec
+trvec (Transform l) (Vec v) = Vec (foldl (\acc h -> case h of
+    Translation (Vec t) -> acc
+    Rotation r -> c_rotate acc r
+  ) v l)
 
 
 --- --- DEAD CODE STASH --- ---
-
 
 -- -- Matrix-based version -- --
 
