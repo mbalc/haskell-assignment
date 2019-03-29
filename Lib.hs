@@ -57,3 +57,36 @@ renderScaled :: Int -> Picture -> IntRendering
 renderScaled f (Picture lines) = (map roundLine lines) where
   roundLine = (\(Point (a, b), Point (p, q)) -> ((round a, round b), (round p, round q)))
 
+
+--- --- Transformation --- ---
+data TransformOp = Translation Vec | Rotation R
+data Transform = [TransformOp]
+
+-- przesunięcie o wektor
+translate :: Vec -> Transform
+translate v = [Translation v]
+
+-- obrót wokół punktu (0,0) przeciwnie do ruchu wskazówek zegara
+-- jednostki mozna sobie wybrać
+rotate :: R -> Transform
+rotate r = [Rotation R]
+
+fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
+fullCircle = toRational 360
+
+instance Mon Transform where
+m1 = Rotation 0
+(Translate v1) >< (Translate v2) = Translate (v1 >< v2)
+(Rotate r1) >< (Rotate r2) = Rotate (r1 + r2)
+
+
+trvec :: Transform -> Vec -> Vec
+
+trpoint :: TransformOp -> Point -> Point
+trpoint (Translation (Vec (xv, yv))) Point (x, y) = Point (x + xv, y + yv)
+
+trpoint :: Transform -> Point -> Point
+trpoint (Transform l) (Point x y)  where
+  Translate (Vec (xv, yv)) = foldl
+
+transform :: Transform -> Picture -> Picture
