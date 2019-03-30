@@ -9,8 +9,8 @@ type R = Rational
 
 type R2 = (R, R)
 
-data Vec = Vec R2     -- wektor 2D
-data Point = Point R2 -- punkt 2D
+data Vec = Vec R2                     -- wektor 2D
+data Point = Point R2 deriving (Show) -- punkt 2D
 
 instance Eq Vec where
   Vec a == Vec b = a == b
@@ -33,7 +33,7 @@ instance Mon Vec where
 
 
 type PicLine = (Point, Point)
-data Picture = Picture [PicLine]
+data Picture = Picture [PicLine] deriving (Show)
 
 picLine :: (R, R) -> (R, R) -> PicLine
 picLine (x1, y1) (x2, y2) = (Point (x1, y1), Point (x2, y2))
@@ -55,7 +55,8 @@ rectangle a b = Picture [ picLine (0, 0) (a, 0)
 (&) :: Picture -> Picture -> Picture
 (Picture a) & (Picture b) = Picture (a ++ b)
 
-type IntLine = ((Int, Int), (Int, Int))
+type IntPoint = (Int, Int)
+type IntLine = (IntPoint, IntPoint)
 type IntRendering = [IntLine]
 
 renderScalePoint :: Int -> Point -> IntPoint
@@ -70,12 +71,8 @@ renderScaled f (Picture lines) = (map roundLine lines) where
 
 --- --- Transformation --- ---
 
-data TransformOp = Translation Vec | Rotation R
-data Transform = Transform [TransformOp]
-
-instance Show TransformOp where
-  show (Translation v) = "Translate " ++ show v
-  show (Rotation r) = "Rotation " ++ show r
+data TransformOp = Translation Vec | Rotation R deriving (Show, Eq)
+data Transform = Transform [TransformOp] deriving (Eq)
 
 instance Show Transform where
   show (Transform a) = show a
@@ -109,7 +106,9 @@ sine :: R -> R
 sine n
   | 0 <= n && n <= fullCircle / 2 = (4 * n * (180 - n)) / (40500 - (n * (180 - n))) -- Bhaskara formula
   | fullCircle / 2 <= n && n <= fullCircle = -sine (n - (fullCircle / 2))
-  | otherwise = sine (n `mod'` fullCircle) -- TODO implement better modulo? here 13 mod 3.1 is not 0.6
+  | n <= 0 = sine (n + fullCircle)
+  | otherwise = sine (n - fullCircle)
+--  | otherwise = sine $ n `mod'` fullCircle -- TODO implement better modulo? here 13 mod 3.1 is not 0.6
 
 cosine :: R -> R
 cosine n = sine (n + (fullCircle / 4))
@@ -122,10 +121,10 @@ c_translate :: R2 -> R2 -> R2
 c_translate (x, y) (xt, yt) = ((x + xt), (y + yt))
 
 trpoint :: Transform -> Point -> Point
-trpoint (Transform l) (Point p) = Point (foldl (\acc h -> case h of
+trpoint (Transform l) (Point p) = Point $ foldl (\acc h -> case h of
     Translation (Vec t) -> c_translate acc t
     Rotation r -> c_rotate acc r
-  ) p l)
+  ) p l
 
 trvec :: Transform -> Vec -> Vec
 trvec (Transform l) (Vec v) = Vec (foldl (\acc h -> case h of
