@@ -37,7 +37,14 @@ parseInput input = mapM parseWord (words input)
 type Stack = [R]
 data State = State { pic :: Picture
                    , stack :: Stack
+                   , currPoint :: Maybe Point
+                   , lastPathPoint :: Maybe Point
                    }
+
+requireCurrPt :: State -> Either String Point
+requireCurrPt state = case currPoint state of
+  Nothing -> Left "Missing current point"
+  Just pt -> Right pt
 
 pop :: Stack -> Either String (R, Stack)
 pop (a : tl) = Right (a, tl)
@@ -54,6 +61,25 @@ alterStack op state = do
   (a, b, tl) <- requireTwo (stack state)
   return state {stack = (op a b) : tl}
 
+moveto :: State -> Either String State
+moveto state = do
+  (a, b, tl) <- requireTwo (stack state)
+  let newPt = Point (a, b)
+  return state { stack = tl
+               , currPoint = Just newPt
+               , lastPathPoint = Just newPt
+               }
+
+lineto :: State -> Either String State
+lineto state = do
+  (a, b, tl) <- requireTwo (stack state)
+  Point cur <- requireCurrPt state
+  let Point newPtCoords = Point (a, b)
+  return state { stack = tl
+               , pic = oldPic & (line cur newPtCoords)
+               , currPoint = Just (Point newPtCoords)
+               } where oldPic = pic state
+
 
 progress :: State -> Lexem -> Either String State
 progress state l = case l of
@@ -62,3 +88,5 @@ progress state l = case l of
   Sub -> alterStack (-) state
   Mul -> alterStack (*) state
   Div -> alterStack (/) state
+  Moveto -> moveto state
+  Lineto -> lineto state
