@@ -35,16 +35,30 @@ parseInput input = mapM parseWord (words input)
 --- Semantics ---
 
 type Stack = [R]
-type State = (Picture, Stack)
+data State = State { pic :: Picture
+                   , stack :: Stack
+                   }
+
+pop :: Stack -> Either String (R, Stack)
+pop (a : tl) = Right (a, tl)
+pop _ = Left "stack underflow"
+
+requireTwo :: Stack -> Either String (R, R, Stack)
+requireTwo st = do
+  (a, st') <- pop st
+  (b, st'') <- pop st'
+  return (a, b, st'')
 
 alterStack :: (R -> R -> R) -> State -> Either String State
-alterStack op (p, a : b : tl) = Right (p, (op a b) : tl)
-alterStack op _ = Left "stack underflow"
+alterStack op state = do
+  (a, b, tl) <- requireTwo (stack state)
+  return state {stack = (op a b) : tl}
+
 
 progress :: State -> Lexem -> Either String State
-progress (p, s) l = case l of
-  Liter n -> Right (p, (toRational n) : s)
-  Add -> alterStack (+) (p, s)
-  Sub -> alterStack (-) (p, s)
-  Mul -> alterStack (*) (p, s)
-  Div -> alterStack (/) (p, s)
+progress state l = case l of
+  Liter n -> let sts = stack state in Right (state {stack = (toRational n) : sts})
+  Add -> alterStack (+) state
+  Sub -> alterStack (-) state
+  Mul -> alterStack (*) state
+  Div -> alterStack (/) state
