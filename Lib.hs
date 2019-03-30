@@ -90,9 +90,16 @@ translate v = Transform [Translation v]
 rotate :: R -> Transform
 rotate r = Transform [Rotation r]
 
+optimize :: [TransformOp] -> [TransformOp]
+optimize ((Translation v1) : (Translation v2) : ts) = optimize $ (Translation (v1 >< v2)) : ts
+optimize ((Rotation r1) : (Rotation r2) : ts) = optimize $ (Rotation (r1 + r2)) : ts
+optimize (a : b : ts) = a : (optimize $ b : ts)
+optimize (a : []) = [a]
+optimize [] = []
+
 instance Mon Transform where
   m1 = Transform []
-  Transform t1 >< Transform t2 = Transform (t1 ++ t2)
+  Transform t1 >< Transform t2 = Transform $ optimize $ t1 ++ t2
 
 
 fullCircle :: R -- wartość odpowiadająca 1 pełnemu obrotowi (360 stopni)
