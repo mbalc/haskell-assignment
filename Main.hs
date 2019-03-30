@@ -52,7 +52,7 @@ requireTwo :: Stack -> Either String (R, R, Stack)
 requireTwo st = do
   (a, st') <- pop st
   (b, st'') <- pop st'
-  return (a, b, st'')
+  return (b, a, st'')
 
 alterStack :: (R -> R -> R) -> State -> Either String State
 alterStack op state = do
@@ -78,6 +78,18 @@ lineto state = do
                , currPoint = Just (Point newPtCoords)
                } where oldPic = pic state
 
+closepath :: State -> Either String State -- dirty, sorry
+closepath state = do
+  case lastPathPoint state of
+    Nothing -> Right state
+    Just (Point last) -> case currPoint state of
+      Nothing -> Right state
+      Just (Point cur) -> case cur == last of
+        True -> Right state
+        False -> Right state { pic = oldPic & (line cur last)
+                             , currPoint = Just (Point last)
+                             } where oldPic = pic state
+
 
 progress :: State -> Lexem -> Either String State
 progress state l = case l of
@@ -88,6 +100,8 @@ progress state l = case l of
   Div -> alterStack (/) state
   Moveto -> moveto state
   Lineto -> lineto state
+  Closepath -> closepath state
+
 --- Input & Output ---
 
 ctrl_prologue = "300 400 translate\n"
