@@ -3,10 +3,8 @@
 module Main where
 import Lib
 import Text.Read
-
-ctrl_prologue = "300 400 translate"
-ctrl_failure = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show"
-ctrl_epilogue = "stroke showpage"
+import Control.Monad (foldM)
+import System.Environment (getArgs)
 
 --- Syntax ---
 
@@ -39,7 +37,7 @@ data State = State { pic :: Picture
                    , stack :: Stack
                    , currPoint :: Maybe Point
                    , lastPathPoint :: Maybe Point
-                   }
+                   } deriving (Show)
 
 requireCurrPt :: State -> Either String Point
 requireCurrPt state = case currPoint state of
@@ -90,3 +88,30 @@ progress state l = case l of
   Div -> alterStack (/) state
   Moveto -> moveto state
   Lineto -> lineto state
+--- Input & Output ---
+
+ctrl_prologue = "300 400 translate\n"
+ctrl_failure = "/Courier findfont 24 scalefont setfont 0 0 moveto (Error) show\n"
+ctrl_epilogue = "stroke showpage"
+
+renderPic :: IntRendering -> String
+renderPic = foldl (
+  \acc ((x1, y1), (x2, y2)) ->
+    acc ++ (show x1) ++ " " ++ (show y1) ++ " moveto " ++ (show x2) ++ " " ++ (show(y2)) ++ " lineto\n"
+  ) ""
+
+
+main :: IO ()
+main = do
+  args <- getArgs
+  let maybeScale = if length args == 1 then readMaybe $ head args :: Maybe Int else Just 1
+  input <- getContents
+  let eitherLastState = parseInput input >>= foldM progress initialState
+
+  putStrLn ctrl_prologue
+  case (eitherLastState, maybeScale) of
+    (Left _, _) -> putStrLn ctrl_failure
+    (_, Nothing) -> putStrLn ctrl_failure
+    (Right lastState, Just scale) -> putStrLn (renderPic $ renderScaled scale (pic lastState))
+  putStrLn ctrl_epilogue
+
