@@ -37,6 +37,7 @@ data State = State { pic :: Picture
                    , stack :: Stack
                    , currPoint :: Maybe Point
                    , lastPathPoint :: Maybe Point
+                   , currTrans :: Transform
                    } deriving (Show)
 
 requireCurrPt :: State -> Either String Point
@@ -74,7 +75,7 @@ lineto state = do
   Point cur <- requireCurrPt state
   let Point newPtCoords = Point (a, b)
   return state { stack = tl
-               , pic = oldPic & (line cur newPtCoords)
+               , pic = oldPic & (line cur newPtCoords))
                , currPoint = Just (Point newPtCoords)
                } where oldPic = pic state
 
@@ -90,6 +91,25 @@ closepath state = do
                              , currPoint = Just (Point last)
                              } where oldPic = pic state
 
+my_translate :: State -> Either String State
+my_translate state = do
+  (a, b, tl) <- requireTwo (stack state)
+  return state {
+               } where oldPic = pic state
+
+
+  return state -- TODO
+
+my_rotate :: State -> Either String State
+my_rotate state = do
+  return state -- TODO
+
+initialState = State { pic = Picture []
+                     , stack = []
+                     , currPoint = Nothing
+                     , lastPathPoint = Nothing
+                     , currTrans = m1
+                     }
 
 progress :: State -> Lexem -> Either String State
 progress state l = case l of
@@ -101,6 +121,8 @@ progress state l = case l of
   Moveto -> moveto state
   Lineto -> lineto state
   Closepath -> closepath state
+  Translate -> my_translate state
+  Rotate -> my_rotate state
 
 --- Input & Output ---
 

@@ -1,6 +1,28 @@
 --- Made by mbalc (mb385130) ---
 
 module Lib where
+--module Lib ( R
+--           , R2
+--           , Vec
+--           , Point
+--           , point
+--           , vec
+--           , Picture
+--           , line
+--           , rectangle
+--           , (&)
+--           , IntLine
+--           , IntRendering
+--           , renderScaled
+--
+--           , Transform
+--           , translate
+--           , rotate
+--           , fullCircle
+--           , trpoint
+--           , trvec
+--           , transform
+--           ) where
 import Mon
 import Data.Fixed(mod')
 
